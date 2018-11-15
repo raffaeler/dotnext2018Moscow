@@ -22,6 +22,24 @@ using BenchmarkDotNet.Attributes;
 //         UnsafeAsRef | 200.9 us | 2.1558 us | 1.9111 us |           - |           - |           - |                   - |
 
 
+//              Method |       Mean |     Error |    StdDev |     Median | Gen 0/1k Op | Gen 1/1k Op | Gen 2/1k Op | Allocated Memory/Op |
+//-------------------- |-----------:|----------:|----------:|-----------:|------------:|------------:|------------:|--------------------:|
+//         PInvokeAuto |  12.788 us | 0.0978 us | 0.0915 us |  12.765 us |           - |           - |           - |                   - |
+//       PInvokeManual | 185.007 us | 2.9501 us | 2.6152 us | 184.456 us |     13.1836 |           - |           - |             56000 B |
+// PInvokeSingleFields |  42.928 us | 0.1903 us | 0.1589 us |  43.020 us |           - |           - |           - |                   - |
+//      SpanByteIntPtr |  10.743 us | 0.2147 us | 0.2556 us |  10.677 us |           - |           - |           - |                   - |
+//            SpanByte |   3.043 us | 0.0785 us | 0.2163 us |   2.944 us |           - |           - |           - |                   - |
+//          SpanStruct |   3.067 us | 0.0801 us | 0.2205 us |   2.966 us |           - |           - |           - |                   - |
+//    SpanStructAndRef |   3.217 us | 0.0470 us | 0.0393 us |   3.222 us |           - |           - |           - |                   - |
+//     SpanByteAndCast |   3.240 us | 0.0616 us | 0.0576 us |   3.229 us |           - |           - |           - |                   - |
+//     SpanByteAndRead |   3.481 us | 0.0582 us | 0.0544 us |   3.466 us |           - |           - |           - |                   - |
+//          UnsafeRead |   3.669 us | 0.0629 us | 0.0558 us |   3.656 us |           - |           - |           - |                   - |
+//         UnsafeAsRef |   4.487 us | 0.0712 us | 0.0631 us |   4.478 us |           - |           - |           - |                   - |
+
+//
+// ===
+//
+
 // Runtime = .NET Core 2.1.5 (CoreCLR 4.6.26919.02, CoreFX 4.6.26919.02), 64bit RyuJIT; GC = Concurrent Workstation
 // x64, Loop = 1_000_000
 //              Method |     Mean |    Error |    StdDev | Gen 0/1k Op | Gen 1/1k Op | Gen 2/1k Op | Allocated Memory/Op |
@@ -39,13 +57,27 @@ using BenchmarkDotNet.Attributes;
 //         UnsafeAsRef | 204.0 ms | 3.970 ms |  4.875 ms |           - |           - |           - |                   - |
 
 
+//              Method |       Mean |     Error |    StdDev |     Median | Gen 0/1k Op | Gen 1/1k Op | Gen 2/1k Op | Allocated Memory/Op |
+//-------------------- |-----------:|----------:|----------:|-----------:|------------:|------------:|------------:|--------------------:|
+//         PInvokeAuto |  14.465 ms | 0.5230 ms | 1.5257 ms |  13.669 ms |           - |           - |           - |                   - |
+//       PInvokeManual | 186.545 ms | 2.8366 ms | 2.3687 ms | 185.495 ms |  13333.3333 |           - |           - |          56000000 B |
+// PInvokeSingleFields |  45.706 ms | 0.9057 ms | 2.2217 ms |  45.227 ms |           - |           - |           - |                   - |
+//      SpanByteIntPtr |  10.745 ms | 0.1879 ms | 0.1569 ms |  10.786 ms |           - |           - |           - |                   - |
+//            SpanByte |   3.552 ms | 0.1343 ms | 0.3677 ms |   3.427 ms |           - |           - |           - |                   - |
+//          SpanStruct |   3.365 ms | 0.0669 ms | 0.1564 ms |   3.301 ms |           - |           - |           - |                   - |
+//    SpanStructAndRef |   4.054 ms | 0.2821 ms | 0.8274 ms |   3.646 ms |           - |           - |           - |                   - |
+//     SpanByteAndCast |   4.198 ms | 0.1917 ms | 0.5531 ms |   4.137 ms |           - |           - |           - |                   - |
+//     SpanByteAndRead |   3.531 ms | 0.0606 ms | 0.0473 ms |   3.537 ms |           - |           - |           - |                   - |
+//          UnsafeRead |   3.751 ms | 0.0767 ms | 0.1125 ms |   3.727 ms |           - |           - |           - |                   - |
+//         UnsafeAsRef |   4.594 ms | 0.1103 ms | 0.1083 ms |   4.557 ms |           - |           - |           - |                   - |
+
 
 namespace InteropConsole
 {
     [MemoryDiagnoser]
     public class TestNative : IDisposable
     {
-        private const int Loop = 1_000;
+        //private const int Loop = 1_000;
         //private const int Loop = 1_000_000;
 
         private NativeInterop _native;
@@ -55,6 +87,8 @@ namespace InteropConsole
             _native = new NativeInterop(@"assets\dsp_demo_sample.wav");
         }
 
+        [Params(1_000, 1_000_000)]
+        public int Loop { get; set; }
 
         public void Dispose()
         {
@@ -117,20 +151,22 @@ namespace InteropConsole
         [Benchmark]
         public unsafe void SpanByteIntPtr()
         {
+            int wavHeaderLength = sizeof(WavHeader);
             for (int i = 0; i < Loop; i++)
             {
                 _native.Read(out IntPtr data, out int length);
-                var spanByte = new Span<byte>(data.ToPointer(), sizeof(WavHeader));
+                Span<byte> spanByte = new Span<byte>(data.ToPointer(), wavHeaderLength);
             }
         }
 
         [Benchmark]
         public unsafe void SpanByte()
         {
+            int wavHeaderLength = sizeof(WavHeader);
             for (int i = 0; i < Loop; i++)
             {
-                var ptr = _native.ReadUnsafe();
-                var spanByte = new Span<byte>(ptr, sizeof(WavHeader));
+                byte* ptr = _native.ReadUnsafe();
+                Span<byte> spanByte = new Span<byte>(ptr, wavHeaderLength);
             }
         }
 
@@ -139,8 +175,8 @@ namespace InteropConsole
         {
             for (int i = 0; i < Loop; i++)
             {
-                var ptr = _native.ReadUnsafe();
-                var spanWavHeader = new Span<WavHeader>(ptr, 1);
+                byte* ptr = _native.ReadUnsafe();
+                Span<WavHeader> spanWavHeader = new Span<WavHeader>(ptr, 1);
             }
         }
 
@@ -149,31 +185,33 @@ namespace InteropConsole
         {
             for (int i = 0; i < Loop; i++)
             {
-                var ptr = _native.ReadUnsafe();
-                var spanWavHeader = new Span<WavHeader>(ptr, 1);
-                ref var refSpanWavHeader = ref MemoryMarshal.GetReference<WavHeader>(spanWavHeader);
+                byte* ptr = _native.ReadUnsafe();
+                Span<WavHeader> spanWavHeader = new Span<WavHeader>(ptr, 1);
+                ref WavHeader refWavHeader = ref MemoryMarshal.GetReference<WavHeader>(spanWavHeader);
             }
         }
 
         [Benchmark]
         public unsafe void SpanByteAndCast()
         {
+            int wavHeaderLength = sizeof(WavHeader);
             for (int i = 0; i < Loop; i++)
             {
-                var ptr = _native.ReadUnsafe();
-                var spanByte = new Span<byte>(ptr, sizeof(WavHeader));
-                var wavheaderx1 = MemoryMarshal.Cast<byte, WavHeader>(spanByte);
+                byte* ptr = _native.ReadUnsafe();
+                Span<byte> spanByte = new Span<byte>(ptr, wavHeaderLength);
+                Span<WavHeader> wavheader = MemoryMarshal.Cast<byte, WavHeader>(spanByte);
             }
         }
 
         [Benchmark]
         public unsafe void SpanByteAndRead()
         {
+            int wavHeaderLength = sizeof(WavHeader);
             for (int i = 0; i < Loop; i++)
             {
-                var ptr = _native.ReadUnsafe();
-                var spanByte = new Span<byte>(ptr, sizeof(WavHeader));
-                var wavheader2 = MemoryMarshal.Read<WavHeader>(spanByte);
+                byte* ptr = _native.ReadUnsafe();
+                Span<byte> spanByte = new Span<byte>(ptr, wavHeaderLength);
+                WavHeader wavheader = MemoryMarshal.Read<WavHeader>(spanByte);
             }
         }
 
@@ -182,8 +220,8 @@ namespace InteropConsole
         {
             for (int i = 0; i < Loop; i++)
             {
-                var ptr = _native.ReadUnsafe();
-                var wavheader = Unsafe.Read<WavHeader>(ptr);
+                byte* ptr = _native.ReadUnsafe();
+                WavHeader wavheader = Unsafe.Read<WavHeader>(ptr);
             }
         }
 
@@ -192,8 +230,8 @@ namespace InteropConsole
         {
             for (int i = 0; i < Loop; i++)
             {
-                var ptr = _native.ReadUnsafe();
-                ref var wavheader = ref Unsafe.AsRef<WavHeader>(ptr);
+                byte* ptr = _native.ReadUnsafe();
+                ref WavHeader wavheader = ref Unsafe.AsRef<WavHeader>(ptr);
             }
         }
 

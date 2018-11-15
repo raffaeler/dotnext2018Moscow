@@ -15,7 +15,10 @@ namespace InteropConsole
             Console.WriteLine($"Process running at: {proc}");
             //BenchmarkRunner.Run<TestProducer>();
             //BenchmarkRunner.Run<TestReadWrite>();
-            BenchmarkRunner.Run<TestNative>();
+            //BenchmarkRunner.Run<TestReadWriteStruct>();
+            //BenchmarkRunner.Run<TestNative>();
+            //BenchmarkRunner.Run<TestMemPressure>();
+            BenchmarkRunner.Run<TestSpanString>();
 
             //var testNative = new TestNative();
             //testNative.PInvokeSingleFields();

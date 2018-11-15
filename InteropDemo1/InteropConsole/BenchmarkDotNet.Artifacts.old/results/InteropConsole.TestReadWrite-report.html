@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='utf-8' />
+<title>InteropConsole.TestReadWrite</title>
+
+<style type="text/css">
+	table { border-collapse: collapse; display: block; width: 100%; overflow: auto; }
+	td, th { padding: 6px 13px; border: 1px solid #ddd; }
+	tr { background-color: #fff; border-top: 1px solid #ccc; }
+	tr:nth-child(even) { background: #f8f8f8; }
+</style>
+</head>
+<body>
+<pre><code>
+BenchmarkDotNet=v0.11.2, OS=Windows 10.0.17763.55 (1809/October2018Update/Redstone5)
+Intel Core i7-6700 CPU 3.40GHz (Skylake), 1 CPU, 8 logical and 4 physical cores
+.NET Core SDK=2.1.500-preview-009335
+  [Host]     : .NET Core 2.1.5 (CoreCLR 4.6.26919.02, CoreFX 4.6.26919.02), 64bit RyuJIT
+  DefaultJob : .NET Core 2.1.5 (CoreCLR 4.6.26919.02, CoreFX 4.6.26919.02), 64bit RyuJIT
+</code></pre>
+<pre><code></code></pre>
+
+<table>
+<thead><tr><th>Method</th><th>Mean</th><th>Error</th><th>StdDev</th>
+</tr>
+</thead><tbody><tr><td>TestManaged</td><td>475.58 ms</td><td>4.925 ms</td><td>4.607 ms</td>
+</tr><tr><td>TestUnsafe</td><td>82.88 ms</td><td>1.342 ms</td><td>1.121 ms</td>
+</tr><tr><td>TestSpan</td><td>89.39 ms</td><td>1.715 ms</td><td>1.605 ms</td>
+</tr><tr><td>TestSpanRef</td><td>89.84 ms</td><td>1.702 ms</td><td>1.821 ms</td>
+</tr></tbody></table>
+</body>
+</html>

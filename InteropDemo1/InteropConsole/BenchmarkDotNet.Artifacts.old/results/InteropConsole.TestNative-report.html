@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='utf-8' />
+<title>InteropConsole.TestNative</title>
+
+<style type="text/css">
+	table { border-collapse: collapse; display: block; width: 100%; overflow: auto; }
+	td, th { padding: 6px 13px; border: 1px solid #ddd; }
+	tr { background-color: #fff; border-top: 1px solid #ccc; }
+	tr:nth-child(even) { background: #f8f8f8; }
+</style>
+</head>
+<body>
+<pre><code>
+BenchmarkDotNet=v0.11.2, OS=Windows 10.0.17763.55 (1809/October2018Update/Redstone5)
+Intel Core i7-6700 CPU 3.40GHz (Skylake), 1 CPU, 8 logical and 4 physical cores
+.NET Core SDK=2.1.500-preview-009335
+  [Host]     : .NET Core 2.1.5 (CoreCLR 4.6.26919.02, CoreFX 4.6.26919.02), 64bit RyuJIT
+  DefaultJob : .NET Core 2.1.5 (CoreCLR 4.6.26919.02, CoreFX 4.6.26919.02), 64bit RyuJIT
+</code></pre>
+<pre><code></code></pre>
+
+<table>
+<thead><tr><th>       Method</th><th>Mean</th><th>Error</th><th>StdDev</th><th>Median</th><th>Gen 0/1k Op</th><th>Gen 1/1k Op</th><th>Gen 2/1k Op</th><th>Allocated Memory/Op</th>
+</tr>
+</thead><tbody><tr><td>PInvokeAuto</td><td>13.133 us</td><td>0.2099 us</td><td>0.1963 us</td><td>13.071 us</td><td>-</td><td>-</td><td>-</td><td>-</td>
+</tr><tr><td>PInvokeManual</td><td>189.085 us</td><td>3.6932 us</td><td>4.3965 us</td><td>187.135 us</td><td>13.1836</td><td>-</td><td>-</td><td>56000 B</td>
+</tr><tr><td>PInvokeSingleFields</td><td>46.824 us</td><td>0.9284 us</td><td>2.6489 us</td><td>46.807 us</td><td>-</td><td>-</td><td>-</td><td>-</td>
+</tr><tr><td>SpanByteIntPtr</td><td>12.013 us</td><td>0.3914 us</td><td>1.1540 us</td><td>11.774 us</td><td>-</td><td>-</td><td>-</td><td>-</td>
+</tr><tr><td>SpanByte</td><td>2.892 us</td><td>0.0550 us</td><td>0.0487 us</td><td>2.893 us</td><td>-</td><td>-</td><td>-</td><td>-</td>
+</tr><tr><td>SpanStruct</td><td>2.879 us</td><td>0.0463 us</td><td>0.0362 us</td><td>2.870 us</td><td>-</td><td>-</td><td>-</td><td>-</td>
+</tr><tr><td>SpanStructAndRef</td><td>3.481 us</td><td>0.1315 us</td><td>0.3793 us</td><td>3.296 us</td><td>-</td><td>-</td><td>-</td><td>-</td>
+</tr><tr><td>SpanByteAndCast</td><td>3.471 us</td><td>0.1128 us</td><td>0.3218 us</td><td>3.320 us</td><td>-</td><td>-</td><td>-</td><td>-</td>
+</tr><tr><td>SpanByteAndRead</td><td>4.380 us</td><td>0.2124 us</td><td>0.6263 us</td><td>4.278 us</td><td>-</td><td>-</td><td>-</td><td>-</td>
+</tr><tr><td>UnsafeRead</td><td>4.000 us</td><td>0.2224 us</td><td>0.6237 us</td><td>3.698 us</td><td>-</td><td>-</td><td>-</td><td>-</td>
+</tr><tr><td>UnsafeAsRef</td><td>5.190 us</td><td>0.2643 us</td><td>0.7668 us</td><td>4.884 us</td><td>-</td><td>-</td><td>-</td><td>-</td>
+</tr></tbody></table>
+</body>
+</html>
