@@ -16,9 +16,9 @@ namespace InteropConsole
             //BenchmarkRunner.Run<TestProducer>();
             //BenchmarkRunner.Run<TestReadWrite>();
             //BenchmarkRunner.Run<TestReadWriteStruct>();
-            //BenchmarkRunner.Run<TestNative>();
+            BenchmarkRunner.Run<TestNative>();
             //BenchmarkRunner.Run<TestMemPressure>();
-            BenchmarkRunner.Run<TestSpanString>();
+            //BenchmarkRunner.Run<TestSpanString>();
 
             //var testNative = new TestNative();
             //testNative.PInvokeSingleFields();

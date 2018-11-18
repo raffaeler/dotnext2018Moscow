@@ -5,71 +5,42 @@ using System.Runtime.InteropServices;
 using System.Text;
 using BenchmarkDotNet.Attributes;
 
-// Runtime = .NET Core 2.1.5 (CoreCLR 4.6.26919.02, CoreFX 4.6.26919.02), 64bit RyuJIT; GC = Concurrent Workstation
-// x64, Loop = 1_000
-//              Method |     Mean |     Error |    StdDev | Gen 0/1k Op | Gen 1/1k Op | Gen 2/1k Op | Allocated Memory/Op |
-//-------------------- |---------:|----------:|----------:|------------:|------------:|------------:|--------------------:|
-//         PInvokeAuto | 216.1 us | 1.8101 us | 1.6932 us |           - |           - |           - |                   - |
-//       PInvokeManual | 509.5 us | 8.3662 us | 7.8257 us |     12.6953 |           - |           - |             56000 B |
-// PInvokeSingleFields | 358.1 us | 2.8329 us | 2.5113 us |           - |           - |           - |                   - |
-//      SpanByteIntPtr | 328.8 us | 6.4680 us | 7.9433 us |           - |           - |           - |                   - |
-//            SpanByte | 199.6 us | 1.7883 us | 1.6727 us |           - |           - |           - |                   - |
-//          SpanStruct | 201.2 us | 2.4763 us | 2.3163 us |           - |           - |           - |                   - |
-//    SpanStructAndRef | 201.9 us | 4.3154 us | 4.9696 us |           - |           - |           - |                   - |
-//     SpanByteAndCast | 199.7 us | 0.9525 us | 0.7954 us |           - |           - |           - |                   - |
-//     SpanByteAndRead | 200.0 us | 0.8209 us | 0.7678 us |           - |           - |           - |                   - |
-//          UnsafeRead | 201.5 us | 2.1447 us | 1.9012 us |           - |           - |           - |                   - |
-//         UnsafeAsRef | 200.9 us | 2.1558 us | 1.9111 us |           - |           - |           - |                   - |
-
-
-//              Method |       Mean |     Error |    StdDev |     Median | Gen 0/1k Op | Gen 1/1k Op | Gen 2/1k Op | Allocated Memory/Op |
-//-------------------- |-----------:|----------:|----------:|-----------:|------------:|------------:|------------:|--------------------:|
-//         PInvokeAuto |  12.788 us | 0.0978 us | 0.0915 us |  12.765 us |           - |           - |           - |                   - |
-//       PInvokeManual | 185.007 us | 2.9501 us | 2.6152 us | 184.456 us |     13.1836 |           - |           - |             56000 B |
-// PInvokeSingleFields |  42.928 us | 0.1903 us | 0.1589 us |  43.020 us |           - |           - |           - |                   - |
-//      SpanByteIntPtr |  10.743 us | 0.2147 us | 0.2556 us |  10.677 us |           - |           - |           - |                   - |
-//            SpanByte |   3.043 us | 0.0785 us | 0.2163 us |   2.944 us |           - |           - |           - |                   - |
-//          SpanStruct |   3.067 us | 0.0801 us | 0.2205 us |   2.966 us |           - |           - |           - |                   - |
-//    SpanStructAndRef |   3.217 us | 0.0470 us | 0.0393 us |   3.222 us |           - |           - |           - |                   - |
-//     SpanByteAndCast |   3.240 us | 0.0616 us | 0.0576 us |   3.229 us |           - |           - |           - |                   - |
-//     SpanByteAndRead |   3.481 us | 0.0582 us | 0.0544 us |   3.466 us |           - |           - |           - |                   - |
-//          UnsafeRead |   3.669 us | 0.0629 us | 0.0558 us |   3.656 us |           - |           - |           - |                   - |
-//         UnsafeAsRef |   4.487 us | 0.0712 us | 0.0631 us |   4.478 us |           - |           - |           - |                   - |
-
+// * Summary *
 //
-// ===
+//BenchmarkDotNet=v0.11.2, OS=Windows 10.0.17763.134 (1809/October2018Update/Redstone5)
+//Intel Core i7-6700 CPU 3.40GHz(Skylake), 1 CPU, 8 logical and 4 physical cores
+//.NET Core SDK = 2.1.500
 //
-
-// Runtime = .NET Core 2.1.5 (CoreCLR 4.6.26919.02, CoreFX 4.6.26919.02), 64bit RyuJIT; GC = Concurrent Workstation
-// x64, Loop = 1_000_000
-//              Method |     Mean |    Error |    StdDev | Gen 0/1k Op | Gen 1/1k Op | Gen 2/1k Op | Allocated Memory/Op |
-//-------------------- |---------:|---------:|----------:|------------:|------------:|------------:|--------------------:|
-//         PInvokeAuto | 215.1 ms | 2.325 ms |  2.061 ms |           - |           - |           - |                   - |
-//       PInvokeManual | 511.4 ms | 5.394 ms |  4.782 ms |  13000.0000 |           - |           - |          56000000 B |
-// PInvokeSingleFields | 367.9 ms | 7.171 ms | 11.980 ms |           - |           - |           - |                   - |
-//      SpanByteIntPtr | 322.2 ms | 2.938 ms |  2.605 ms |           - |           - |           - |                   - |
-//            SpanByte | 199.2 ms | 1.947 ms |  1.520 ms |           - |           - |           - |                   - |
-//          SpanStruct | 201.8 ms | 3.166 ms |  2.962 ms |           - |           - |           - |                   - |
-//    SpanStructAndRef | 201.3 ms | 2.610 ms |  2.314 ms |           - |           - |           - |                   - |
-//     SpanByteAndCast | 201.6 ms | 3.278 ms |  3.066 ms |           - |           - |           - |                   - |
-//     SpanByteAndRead | 201.8 ms | 3.116 ms |  2.762 ms |           - |           - |           - |                   - |
-//          UnsafeRead | 202.5 ms | 3.224 ms |  3.016 ms |           - |           - |           - |                   - |
-//         UnsafeAsRef | 204.0 ms | 3.970 ms |  4.875 ms |           - |           - |           - |                   - |
-
-
-//              Method |       Mean |     Error |    StdDev |     Median | Gen 0/1k Op | Gen 1/1k Op | Gen 2/1k Op | Allocated Memory/Op |
-//-------------------- |-----------:|----------:|----------:|-----------:|------------:|------------:|------------:|--------------------:|
-//         PInvokeAuto |  14.465 ms | 0.5230 ms | 1.5257 ms |  13.669 ms |           - |           - |           - |                   - |
-//       PInvokeManual | 186.545 ms | 2.8366 ms | 2.3687 ms | 185.495 ms |  13333.3333 |           - |           - |          56000000 B |
-// PInvokeSingleFields |  45.706 ms | 0.9057 ms | 2.2217 ms |  45.227 ms |           - |           - |           - |                   - |
-//      SpanByteIntPtr |  10.745 ms | 0.1879 ms | 0.1569 ms |  10.786 ms |           - |           - |           - |                   - |
-//            SpanByte |   3.552 ms | 0.1343 ms | 0.3677 ms |   3.427 ms |           - |           - |           - |                   - |
-//          SpanStruct |   3.365 ms | 0.0669 ms | 0.1564 ms |   3.301 ms |           - |           - |           - |                   - |
-//    SpanStructAndRef |   4.054 ms | 0.2821 ms | 0.8274 ms |   3.646 ms |           - |           - |           - |                   - |
-//     SpanByteAndCast |   4.198 ms | 0.1917 ms | 0.5531 ms |   4.137 ms |           - |           - |           - |                   - |
-//     SpanByteAndRead |   3.531 ms | 0.0606 ms | 0.0473 ms |   3.537 ms |           - |           - |           - |                   - |
-//          UnsafeRead |   3.751 ms | 0.0767 ms | 0.1125 ms |   3.727 ms |           - |           - |           - |                   - |
-//         UnsafeAsRef |   4.594 ms | 0.1103 ms | 0.1083 ms |   4.557 ms |           - |           - |           - |                   - |
+// [Host]     : .NET Core 2.1.6 (CoreCLR 4.6.27019.06, CoreFX 4.6.27019.05), 64bit RyuJIT
+//  DefaultJob : .NET Core 2.1.6 (CoreCLR 4.6.27019.06, CoreFX 4.6.27019.05), 64bit RyuJIT
+//
+//              Method |    Loop |           Mean |         Error |        StdDev | Gen 0/1k Op | Gen 1/1k Op | Gen 2/1k Op | Allocated Memory/Op |
+//-------------------- |-------- |---------------:|--------------:|--------------:|------------:|------------:|------------:|--------------------:|
+//         PInvokeAuto |    1000 |      12.617 us |     0.1081 us |     0.0958 us |           - |           - |           - |                   - |
+//       PInvokeManual |    1000 |     188.891 us |     3.7755 us |     5.1679 us |     13.1836 |           - |           - |             56000 B |
+// PInvokeSingleFields |    1000 |      42.619 us |     0.4199 us |     0.3927 us |           - |           - |           - |                   - |
+//      SpanByteIntPtr |    1000 |      10.438 us |     0.1345 us |     0.1259 us |           - |           - |           - |                   - |
+//      UnsafeBaseline |    1000 |       3.077 us |     0.0465 us |     0.0435 us |           - |           - |           - |                   - |
+//            SpanByte |    1000 |       3.080 us |     0.0560 us |     0.0496 us |           - |           - |           - |                   - |
+//          SpanStruct |    1000 |       3.125 us |     0.0597 us |     0.0613 us |           - |           - |           - |                   - |
+//    SpanStructAndRef |    1000 |       2.817 us |     0.0560 us |     0.0622 us |           - |           - |           - |                   - |
+//     SpanByteAndCast |    1000 |       3.097 us |     0.0338 us |     0.0300 us |           - |           - |           - |                   - |
+//     SpanByteAndRead |    1000 |       3.407 us |     0.0447 us |     0.0418 us |           - |           - |           - |                   - |
+//          UnsafeRead |    1000 |       3.690 us |     0.0386 us |     0.0361 us |           - |           - |           - |                   - |
+//         UnsafeAsRef |    1000 |       4.371 us |     0.0723 us |     0.0677 us |           - |           - |           - |                   - |
+// ------------------------------------------------------------------------------------------------------------------------------------------------
+//         PInvokeAuto | 1000000 |  12,612.498 us |   156.1034 us |   146.0192 us |           - |           - |           - |                   - |
+//       PInvokeManual | 1000000 | 181,735.211 us | 3,490.3490 us | 3,879.5137 us |  13333.3333 |           - |           - |          56000000 B |
+// PInvokeSingleFields | 1000000 |  43,325.783 us |   835.8621 us | 1,225.1958 us |           - |           - |           - |                   - |
+//      SpanByteIntPtr | 1000000 |  10,522.530 us |   185.2849 us |   173.3156 us |           - |           - |           - |                   - |
+//      UnsafeBaseline | 1000000 |   3,247.008 us |    61.5959 us |    60.4954 us |           - |           - |           - |                   - |
+//            SpanByte | 1000000 |   3,273.589 us |    68.9602 us |    92.0599 us |           - |           - |           - |                   - |
+//          SpanStruct | 1000000 |   3,253.136 us |    43.8460 us |    41.0136 us |           - |           - |           - |                   - |
+//    SpanStructAndRef | 1000000 |   2,786.450 us |    55.5301 us |    51.9429 us |           - |           - |           - |                   - |
+//     SpanByteAndCast | 1000000 |   3,119.930 us |    60.9927 us |    89.4023 us |           - |           - |           - |                   - |
+//     SpanByteAndRead | 1000000 |   3,374.622 us |    31.1955 us |    26.0497 us |           - |           - |           - |                   - |
+//          UnsafeRead | 1000000 |   3,793.350 us |    72.6031 us |    86.4288 us |           - |           - |           - |                   - |
+//         UnsafeAsRef | 1000000 |   4,453.932 us |    88.8326 us |    87.2455 us |           - |           - |           - |                   - |
 
 
 namespace InteropConsole
@@ -77,9 +48,6 @@ namespace InteropConsole
     [MemoryDiagnoser]
     public class TestNative : IDisposable
     {
-        //private const int Loop = 1_000;
-        //private const int Loop = 1_000_000;
-
         private NativeInterop _native;
 
         public TestNative()
@@ -160,6 +128,15 @@ namespace InteropConsole
         }
 
         [Benchmark]
+        public unsafe void UnsafeBaseline()
+        {
+            for (int i = 0; i < Loop; i++)
+            {
+                byte* ptr = _native.ReadUnsafe();
+            }
+        }
+
+        [Benchmark]
         public unsafe void SpanByte()
         {
             int wavHeaderLength = sizeof(WavHeader);
@@ -188,6 +165,9 @@ namespace InteropConsole
                 byte* ptr = _native.ReadUnsafe();
                 Span<WavHeader> spanWavHeader = new Span<WavHeader>(ptr, 1);
                 ref WavHeader refWavHeader = ref MemoryMarshal.GetReference<WavHeader>(spanWavHeader);
+
+                // From MemoryMarshal sources:
+                // public static ref T GetReference<T>(Span<T> span) => ref span._pointer.Value;
             }
         }
 
