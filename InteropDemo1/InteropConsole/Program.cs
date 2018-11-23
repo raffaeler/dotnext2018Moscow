@@ -2,8 +2,12 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Running;
 
+//[MedianColumn, MinColumn, Q1Column]
+//[Benchmark(Baseline =true)]
+//[StatisticalTestColumn()]
 
 namespace InteropConsole
 {
